@@ -1,3 +1,4 @@
+# java -jar Mars4_5.jar
 #                      _..._                 .           __.....__
 #                    .'     '.             .'|       .-''         '.
 #                   .   .-.   .          .'  |      /     .-''"'-.  `.
@@ -68,24 +69,24 @@
 
 
 ################################################################################
-#                  Fonctions d'affichage et d'entrée clavier                   #
+#                     Keyboard display and input functions                     #
 ################################################################################
 
-# Ces fonctions s'occupent de l'affichage et des entrées clavier.
-# Il n'est pas obligatoire de comprendre ce qu'elles font.
+# These functions handle display and keyboard inputs.
+# It is not mandatory to understand what they do.
 
 .data
 
-# Tampon d'affichage du jeu 256*256 de manière linéaire.
+# 256*256 set display buffer linearly.
 
 frameBuffer: .word 0 : 1024  # Frame buffer
 
-# Code couleur pour l'affichage
-# Codage des couleurs 0xwwxxyyzz où
-#   ww = 00
-#   00 <= xx <= ff est la couleur rouge en hexadécimal
-#   00 <= yy <= ff est la couleur verte en hexadécimal
-#   00 <= zz <= ff est la couleur bleue en hexadécimal
+# Color code for display
+# Color coding 0xwwxxyyzz where
+# ww = 00
+# 00 <= xx <= ff is the red color in hexadecimal
+# 00 <= yy <= ff is the green color in hexadecimal
+# 00 <= zz <= ff is the blue color in hexadecimal
 
 colors: .word 0x00000000, 0x00ff0000, 0xff00ff00, 0x00396239, 0x00ff00ff
 .eqv black 0
@@ -94,7 +95,7 @@ colors: .word 0x00000000, 0x00ff0000, 0xff00ff00, 0x00396239, 0x00ff00ff
 .eqv greenV2  12
 .eqv rose  16
 
-# Dernière position connue de la queue du serpent.
+# Last known position of snake tail.
 
 lastSnakePiece: .word 0, 0
 
@@ -102,29 +103,29 @@ lastSnakePiece: .word 0, 0
 j main
 
 ############################# printColorAtPosition #############################
-# Paramètres: $a0 La valeur de la couleur
-#             $a1 La position en X
-#             $a2 La position en Y
-# Retour: Aucun
-# Effet de bord: Modifie l'affichage du jeu
+# Parameters: $a0 The color value
+#             $a1 The position in X
+#             $a2 The position in Y
+# Return: None
+# Side Effect: Changes the game display
 ################################################################################
 
 printColorAtPosition:
-lw $t0 tailleGrille
+lw $t0 gridSize
 mul $t0 $a1 $t0
 add $t0 $t0 $a2
 sll $t0 $t0 2
 sw $a0 frameBuffer($t0)
 jr $ra
 
-################################ resetAffichage ################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Réinitialise tout l'affichage avec la couleur noir
+################################ resetDisplay ##################################
+# Parameters: None
+# Return: None
+# Side Effect: Resets all display with black color
 ################################################################################
 
-resetAffichage:
-lw $t1 tailleGrille
+resetDisplay:
+lw $t1 gridSize
 mul $t1 $t1 $t1
 sll $t1 $t1 2
 la $t0 frameBuffer
@@ -139,11 +140,11 @@ endRALoop2:
 jr $ra
 
 ################################## printSnake ##################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Change la couleur de l'affichage aux emplacement ou se
-#                trouve le serpent et sauvegarde la dernière position connue de
-#                la queue du serpent.
+# Parameters: None
+# Return: None
+# Side Effect:   Changes the color of the display to the location
+#                where the snake is located and saves the last known position
+#                of the snake's tail.
 ################################################################################
 
 printSnake:
@@ -152,7 +153,7 @@ sw $ra 0($sp)
 sw $s0 4($sp)
 sw $s1 8($sp)
 
-lw $s0 tailleSnake
+lw $s0 snakeSize
 sll $s0 $s0 2
 li $s1 0
 
@@ -185,9 +186,9 @@ addu $sp $sp 12
 jr $ra
 
 ################################ printObstacles ################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Change la couleur de l'affichage aux emplacement des obstacles.
+# Parameters: None
+# Return: None
+# Side Effect: Changes the color of the display to the location of obstacles.
 ################################################################################
 
 printObstacles:
@@ -217,9 +218,9 @@ addu $sp $sp 12
 jr $ra
 
 ################################## printCandy ##################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Change la couleur de l'affichage à l'emplacement du bonbon.
+# Parameters: None
+# Return: None
+# Side Effect: Changes the color of the display to the candy location.
 ################################################################################
 
 printCandy:
@@ -249,9 +250,9 @@ addu $sp $sp 4
 jr $ra
 
 ################################## printGame ###################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Effectue l'affichage de la totalité des éléments du jeu.
+# Parameters: None
+# Return: None
+# Side Effect: Displays all elements of the game.
 ################################################################################
 
 printGame:
@@ -268,13 +269,13 @@ addu $sp $sp 4
 jr $ra
 
 ############################## getRandomExcluding ##############################
-# Paramètres: $a0 Un entier x | 0 <= x < tailleGrille
-# Retour: $v0 Un entier y | 0 <= y < tailleGrille, y != x
+# Parameters: $a0 An integer x | 0 <= x < gridSize
+# Return: $v0 An integer y | 0 <= y < gridSize, y != x
 ################################################################################
 
 getRandomExcluding:
 move $t0 $a0
-lw $a1 tailleGrille
+lw $a1 gridSize
 li $v0 42
 syscall
 beq $t0 $a0 getRandomExcluding
@@ -282,11 +283,11 @@ move $v0 $a0
 jr $ra
 
 ########################### newRandomObjectPosition ############################
-# Description: Renvoie une position aléatoire sur un emplacement non utilisé
-#              qui ne se trouve pas devant le serpent.
-# Paramètres: Aucun
-# Retour: $v0 Position X du nouvel objet
-#         $v1 Position Y du nouvel objet
+# Description: Returns a random position on an unused location that is not
+#              in front of the snake.
+# Parameters: None
+# Return: $v0 Position X of the new object
+#         $v1 Position Y of the new object
 ################################################################################
 
 newRandomObjectPosition:
@@ -297,7 +298,7 @@ lw $t0 snakeDir
 and $t0 0x1
 bgtz $t0 horizontalMoving
 li $v0 42
-lw $a1 tailleGrille
+lw $a1 gridSize
 syscall
 move $t8 $a0
 lw $a0 snakePosY
@@ -309,13 +310,13 @@ horizontalMoving:
 lw $a0 snakePosX
 jal getRandomExcluding
 move $t8 $v0
-lw $a1 tailleGrille
+lw $a1 gridSize
 li $v0 42
 syscall
 move $t9 $a0
 endROPdir:
 
-lw $t0 tailleSnake
+lw $t0 snakeSize
 sll $t0 $t0 2
 la $t0 snakePosX($t0)
 la $t1 snakePosX
@@ -357,53 +358,53 @@ addu $sp $sp 4
 j newRandomObjectPosition
 
 ################################# getInputVal ##################################
-# Paramètres: Aucun
-# Retour: $v0 La valeur 0 (haut), 1 (droite), 2 (bas), 3 (gauche), 4 erreur
+# Parameters: None
+# Return: $v0 The value 0 (up), 1 (right), 2 (down), 3 (left), 4 error
 ################################################################################
 
 getInputVal:
 lw $t0 0xffff0004
 li $t1 122
-beq $t0 $t1 GIhaut
+beq $t0 $t1 GIup
 li $t1 115
-beq $t0 $t1 GIbas
+beq $t0 $t1 GIdown
 li $t1 113
-beq $t0 $t1 GIgauche
+beq $t0 $t1 GIleft
 li $t1 100
-beq $t0 $t1 GIdroite
+beq $t0 $t1 GIright
 li $v0 4
 j GIend
 
-GIhaut:
+GIup:
 li $v0 0
 j GIend
 
-GIdroite:
+GIright:
 li $v0 1
 j GIend
 
-GIbas:
+GIdown:
 li $v0 2
 j GIend
 
-GIgauche:
+GIleft:
 li $v0 3
 
 GIend:
 jr $ra
 
 ################################ sleepMillisec #################################
-# Paramètres: Aucun
-# Retour: Aucun
+# Parameters: None
+# Return: None
 ################################################################################
 
-#Par d�faut 0.5 secondes, � chaque bonbon mang� diminution de temps de 0.01 secondes
+#By default takes 0.5 seconds, for each eaten candy, decrease of 0.01 seconds
 sleepMillisec:
 li $t0 500
 li $t2 10
-lw $t1 scoreJeu
-mul $t1 $t1 $t2 # $t1 = scoreJeu*10
-sub $a0 $t0 $t1 # $a0 == 500 - (scoreJeu*10)
+lw $t1 gameScore
+mul $t1 $t1 $t2 # $t1 = gameScore*10
+sub $a0 $t0 $t1 # $a0 == 500 - (gameScore*10)
 
 move $t0 $a0
 li $v0 30
@@ -420,29 +421,29 @@ endSMloop:
 jr $ra
 
 ##################################### main #####################################
-# Description: Boucle principal du jeu
-# Paramètres: Aucun
-# Retour: Aucun
+# Description: Main game loop
+# Parameters: None
+# Return: None
 ################################################################################
 
 main:
 
-# Initialisation du jeu
+# Game initialization
 
-jal resetAffichage
+jal resetDisplay
 jal newRandomObjectPosition
 sw $v0 candy
 sw $v1 candy + 4
 
-# Boucle de jeu
+# Game loop
 
 mainloop:
 
 jal getInputVal
 move $a0 $v0
-jal majDirection
+jal updateDirection
 jal updateGameStatus
-jal conditionFinJeu
+jal conditionEndGame
 bnez $v0 gameOver
 jal printGame
 #li $a0 500
@@ -450,83 +451,83 @@ jal sleepMillisec
 j mainloop
 
 gameOver:
-jal affichageFinJeu
+jal displayEndGame
 li $v0 10
 syscall
 
 ################################################################################
-#                                Partie Projet                                 #
+#                                   Project                                    #
 ################################################################################
 
-# À vous de jouer !
+# It’s up to you!
 
 .data
 
-tailleGrille:  .word 16        # Nombre de case du jeu dans une dimension.
+gridSize:  .word 16        # Number of squares in a dimension.
 
-# La tête du serpent se trouve à (snakePosX[0], snakePosY[0]) et la queue à
-# (snakePosX[tailleSnake - 1], snakePosY[tailleSnake - 1])
-tailleSnake:   .word 1         # Taille actuelle du serpent.
-snakePosX:     .word 0 : 1024  # Coordonnées X du serpent ordonné de la tête à la queue.
-snakePosY:     .word 0 : 1024  # Coordonnées Y du serpent ordonné de la t.
+# The head of the snake is (snakePosX[0], snakePosY[0]) and the tail is
+# (snakePosX[snakeSize - 1], snakePosY[snakeSize - 1])
+snakeSize:   .word 1         # Current size of the snake.
+snakePosX:     .word 0 : 1024  # Position X of the snake ordered from head to tail.
+snakePosY:     .word 0 : 1024  # Position Y of the snake ordered from head to tail.
 
-# Les directions sont représentés sous forme d'entier allant de 0 à 3:
-snakeDir:      .word 1         # Direction du serpent: 0 (haut), 1 (droite)
-                               #                       2 (bas), 3 (gauche)
-numObstacles:  .word 0         # Nombre actuel d'obstacle présent dans le jeu.
-obstaclesPosX: .word  0: 1024  # Coordonnées X des obstacles
-obstaclesPosY: .word  0: 1024  # Coordonnées Y des obstacles
-candy:         .word 0, 0      # Position du bonbon (X,Y)
-scoreJeu:      .word 0         # Score obtenu par le joueur
-messageLoser:  .asciiz "T'as perdu!!, la partie est finie \nTon score est:" #messsage affich� quand on perd
+# Directions are represented as integers ranging from 0 to 3:
+snakeDir:      .word 1         # Direction of the snake: 0 (up), 1 (right)
+                               #                         2 (down), 3 (left)
+numObstacles:  .word 0         # Current number of obstacles present in the game.
+obstaclesPosX: .word  0: 1024  # Position X of the obstacles
+obstaclesPosY: .word  0: 1024  # Position Y of the obstacles
+candy:         .word 0, 0      # Position of the candy (X,Y)
+gameScore:      .word 0         # Score obtained by the player
+messageLoser:  .asciiz "You lost! The game is finished. \nYour score is:" #printed message when we lose
 
 .text
 
-################################# majDirection #################################
-# Paramètres: $a0 La nouvelle position demandée par l'utilisateur. La valeur
-#                 étant le retour de la fonction getInputVal.
-# Retour: Aucun
-# Effet de bord: La direction du serpent à été mise à jour.
-# Post-condition: La valeur du serpent reste intacte si une commande illégale
-#                 est demandée, i.e. le serpent ne peut pas faire de demi-tour
-#                 en un unique tour de jeu. Cela s'apparente à du cannibalisme
-#                 et à été proscrit par la loi dans les sociétés reptiliennes.
-################################################################################
+################################# updateDirection #################################
+# Parameters: $a0 The new position requested by the user.
+#                 The value is the return of the getInputVal function.
+# Return: None
+# Side Effect: The direction of the snake has been updated.
+# Post-condition: The value of the snake remains intact if an illegal command
+#                 is requested, i.e. the snake cannot turn around in
+#                 a single turn. This is akin to cannibalism and has been outlawed
+#                 by law in reptilian societies.
+##################################################################################
 
-majDirection:
+updateDirection:
 
-# En haut, ... en bas, ... à gauche, ... à droite, ... ces soirées là ...
+# Up, ... down, ... left, ... right, ... those nights there...
 
 
 move $t0 $a0 
 lw $t1 snakeDir
-bgt $t0 3 endMajDirection #snakeDir = 1 par default, si pas cette condition le jeu attend un nouvelle input pour commencer le jeu
-blt $t0 2 switch1 # getInputVal < 2 #�vite un demi-tour su serpent
-j switch2 # 2 <= getInputVal #�vite un demi-tour su serpent
+bgt $t0 3 endUpdateDirection # snakeDir = 1 by default, if not this condition the game waits for a new input to start the game
+blt $t0 2 switch1 # getInputVal < 2 avoids a turn around
+j switch2 # 2 <= getInputVal avoids a turn around
 
-maj:
+update:
 sw $a0 snakeDir
 
-endMajDirection:
+endUpdateDirection:
 jr $ra
 
 switch1:
-addi $t0 $t0 2 # 0(haut) + 2 = 2(bas), 1(gauche) + 2 = 3(droite)
-beq $t0 $t1 endMajDirection
-j maj
+addi $t0 $t0 2 # 0(up) + 2 = 2(down), 1(left) + 2 = 3(right)
+beq $t0 $t1 endUpdateDirection
+j update
 
 switch2:
-subi $t0 $t0 2 # 2(bas) - 2 = 0(haut), 3(droite) - 2 = 1(gauche)
-beq $t0 $t1 endMajDirection
-j maj
+subi $t0 $t0 2 # 2(down) - 2 = 0(up), 3(right) - 2 = 1(left)
+beq $t0 $t1 endUpdateDirection
+j update
 
 ############################### updateGameStatus ###############################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: L'état du jeu est mis à jour d'un pas de temps. Il faut donc :
-#                  - Faire bouger le serpent
-#                  - Tester si le serpent à manger le bonbon
-#                    - Si oui déplacer le bonbon et ajouter un nouvel obstacle
+# Parameters: None
+# Return: None
+# Side Effect: The status of the game is updated by a time step. Therefore:
+#                  - Move the snake
+#                  - Test if snake eats candy
+#                  - If yes, move the candy and add a new obstacle
 ################################################################################
 
 updateGameStatus:
@@ -540,24 +541,25 @@ sw $s0 4($sp)
 sw $s1 8($sp)
 sw $s2 12($sp) 
 sw $s3 16($sp)
-#acc�es aux �l�ments du serpent
-lw $s2 tailleSnake
+
+# acces to the elements of the snake
+lw $s2 snakeSize
 subi $s2 $s2 1
 sll $s2 $s2 2
 li $s1 0
-li $s3 4 #acc�der au 2eme �lement du serpent
-#coordon�es de la tete: $t0=coordonn�X $t1=coordon�eY
+li $s3 4 # acces on the second element of the snake
+#coordinates of the head: $t0= position X $t1=position Y
 lw $t0 snakePosX#($s1)
 lw $t1 snakePosY#($s1)
 
-#fait bouger le serpent
+# move the snake
 lw $s0 snakeDir
-beq $s0 0 hautLoopTS
-beq $s0 1 droiteLoopTS
-beq $s0 2 basLoopTS
-beq $s0 3 gaucheLoopTS
-#si pas de branchement effectu� passage � direct � l'outro
+beq $s0 0 upLoopTS
+beq $s0 1 rightLoopTS
+beq $s0 2 downLoopTS
+beq $s0 3 leftLoopTS
 
+# endUpdateGameStatus
 endUGS:
 #outro:
 lw $ra 0($sp)
@@ -568,22 +570,22 @@ lw $s3 16($sp)
 addi $sp $sp 20
 jr $ra
 
-#Mise a jour des element du serpent
-hautLoopTS:
-bge $s1 $s2 haut
-lw $t2 snakePosX($s3) #t2 = SnakePosX[TailleSnake-1]
-lw $t3 snakePosY($s3) #t2 = SnakePosY[TailleSnake-1]
-sw $t0 snakePosX($s3) #SnakePosX[TailleSnake-1]=SnakePosX[tailleSnake]
-sw $t1 snakePosY($s3) #SnakePosX[TailleSnake-1]=SnakePosY[tailleSnake]
-move $t0 $t2 #t0=SnakePosX[TailleSnake-1]
-move $t1 $t3 #t1=SnakePosY[TailleSnake-1] 
-addu $s3 $s3 4 #incr�mentation de l'indice
-addi $s1 $s1 4 #incr�mentation du compteur
-j  hautLoopTS
+# Update the elements of the snake
+upLoopTS:
+bge $s1 $s2 up
+lw $t2 snakePosX($s3) #t2 = SnakePosX[snakeSize-1]
+lw $t3 snakePosY($s3) #t2 = SnakePosY[snakeSize-1]
+sw $t0 snakePosX($s3) #SnakePosX[snakeSize-1]=SnakePosX[snakeSize]
+sw $t1 snakePosY($s3) #SnakePosX[snakeSize-1]=SnakePosY[snakeSize]
+move $t0 $t2 #t0=SnakePosX[snakeSize-1]
+move $t1 $t3 #t1=SnakePosY[snakeSize-1] 
+addu $s3 $s3 4 # increment the index
+addi $s1 $s1 4 # increment the counter
+j  upLoopTS
 
-#meme principe que hautLoopTS:
-droiteLoopTS:
-bge $s1 $s2 droite
+# the same as upLoopTS:
+rightLoopTS:
+bge $s1 $s2 right
 lw $t2 snakePosX($s3)
 lw $t3 snakePosY($s3)
 sw $t0 snakePosX($s3)
@@ -592,11 +594,11 @@ move $t0 $t2
 move $t1 $t3
 addu $s3 $s3 4
 addi $s1 $s1 4
-j  droiteLoopTS
+j  rightLoopTS
 
-#m�me principe que hautLoopTS:
-basLoopTS:
-bge $s1 $s2 bas
+# the same as upLoopTS:
+downLoopTS:
+bge $s1 $s2 down
 lw $t2 snakePosX($s3)
 lw $t3 snakePosY($s3)
 sw $t0 snakePosX($s3)
@@ -605,11 +607,11 @@ move $t0 $t2
 move $t1 $t3
 addu $s3 $s3 4
 addi $s1 $s1 4
-j  basLoopTS
+j  downLoopTS
 
-#m�me principe que hautLoopTS:
-gaucheLoopTS:
-bge $s1 $s2 gauche
+# the same as upLoopTS:
+leftLoopTS:
+bge $s1 $s2 left
 lw $t2 snakePosX($s3)
 lw $t3 snakePosY($s3)
 sw $t0 snakePosX($s3)
@@ -618,60 +620,61 @@ move $t0 $t2
 move $t1 $t3
 addu $s3 $s3 4
 addi $s1 $s1 4
-j  gaucheLoopTS
+j  leftLoopTS
 
-#mise a jour de la position de la tete du serpent
-haut:
+# update the position of the snake's head
+up:
 lw $s0 snakePosX 
-subi $s0 $s0 1 #x-1= d�placement vers le haut 
+subi $s0 $s0 1 #x-1= move up
 sw $s0 snakePosX
 j testCandy
 
-droite:
+right:
 lw $s0 snakePosY
-addi $s0 $s0 1 #y+1= d�placement vers la droite 
+addi $s0 $s0 1 #y+1= move right 
 sw $s0 snakePosY
 j testCandy
 
-bas:
+down:
 lw $s0 snakePosX
-addi $s0 $s0 1 #x+1= d�placement vers le bas
+addi $s0 $s0 1 #x+1= move down
 sw $s0 snakePosX
 j testCandy
 
-gauche:
+left:
 lw $s0 snakePosY
-subi $s0 $s0 1 #y-1= d�placement vers la gauche
+subi $s0 $s0 1 #y-1= move left
 sw $s0 snakePosY
 j testCandy
 
-#Tester si le serpent a manger le bonbon
+# Test if the snake ate the candy
 testCandy:
 lw $s0 candy
 lw $s1 candy+4
 lw $s2 snakePosX
 lw $s3 snakePosY
 	
-bne $s0 $s2 endUGS #Si candy[x]!=SnakePosX, branchement vers EndUgs
-bne $s1 $s3 endUGS #Si candy[y]!=SnakePosX, branchement vers EndUgs
+bne $s0 $s2 endUGS # If candy[x]!=SnakePosX, connection to EndUgs
+bne $s1 $s3 endUGS # Si candy[y]!=SnakePosX, connection to EndUgs
 
 #Si oui déplacer le bonbon et ajouter un nouvel obstacle
+# If yes, move the candy elsewhere and add a new obstacle
 UpdateCandyPosition:
-jal newRandomObjectPosition #G�n�re une nouvelle position pour le bonbon
+jal newRandomObjectPosition # generate a new position for the candy
 sw $v0 candy
 sw $v1 candy+4
 
-#incr�mente le score et 
-lw $s0 scoreJeu 
+# increment the score
+lw $s0 gameScore
 addi $s0 $s0 1
-sw $s0 scoreJeu
+sw $s0 gameScore
 
-#Augmente la taille du serpent
-lw $s2 tailleSnake
+# increase the size of the snake
+lw $s2 snakeSize
 addi $s2 $s2 1
-sw $s2 tailleSnake 
+sw $s2 snakeSize 
 
-#Agrandissement de la taille du serpent
+# enlarge the snake
 subi $s2 $s2 1
 mul $s2 $s2 4
 lw $s1 lastSnakePiece
@@ -679,14 +682,14 @@ lw $s0 lastSnakePiece + 4
 sw $s1 snakePosX($s2)
 sw $s0 snakePosY($s2)
 
-#incr�mete ne nombre d'obstacle
+# increment the number of obstacles
 lw $s1 numObstacles
 addi $s1 $s1 1
 sw $s1 numObstacles
 subi $s1 $s1 1
 mul $s1 $s1 4
 
-#g�n�re un nouvel obstacle
+# generate a new obstacle
 jal newRandomObjectPosition
 sw $v0 obstaclesPosX($s1)
 sw $v1 obstaclesPosY($s1)
@@ -694,13 +697,13 @@ sw $v1 obstaclesPosY($s1)
 j endUGS
 
 		
-############################### conditionFinJeu ################################
-# Paramètres: Aucun
-# Retour: $v0 La valeur 0 si le jeu doit continuer ou toute autre valeur sinon.
+############################### conditionEndGame ###############################
+# Parameters: None
+# Return: $v0 The value 0 if the game should continue or any other value if not.
 ################################################################################
 
 
-conditionFinJeu:
+conditionEndGame:
 #intro:
 addi $sp $sp -28
 sw $ra 0($sp)
@@ -711,7 +714,6 @@ sw $s3 16($sp)
 sw $s4 20($sp)
 sw $s5 24($sp)
 
-# Aide: Remplacer cette instruction permet d'avancer dans le projet.
 li $v0 0
 
 lw $s0 snakePosX
@@ -720,7 +722,7 @@ lw $s2 obstaclesPosX
 lw $s3 obstaclesPosY
 lw $s4 numObstacles
 
-#v�rifie si le serpent et dans la grille															
+# verify if the snake is inside of the grid														
 beq $s0 -1 GameOverCFJ #si X<0, GameOverCFJ 
 beq $s1 -1 GameOverCFJ	#si Y<0, saut a GameOverCFJ 
 beq $s0 16 GameOverCFJ #si X>16, saut a GameOverCFJ 
@@ -729,29 +731,29 @@ beq $s1 16 GameOverCFJ #si Y>16, saut a GameOverCFJ
 sll $s4 $s4 2
 li $s5 0
 
-#V�rifie si le serpent n'est pas sur un obctacle
+# verify if the snake doesn't hit an obstacle
 cfjObstacleLoop:
 lw $s2 obstaclesPosX($s5)
 lw $s3 obstaclesPosY($s5) 
 beq $s5 $s4 snake 
 addu $s5 $s5 4 
-bne $s0 $s2 cfjObstacleLoop #si ObstaclePosX!=SnakePosX, branchement vers cfjObstacleLoop
-bne $s1 $s3 cfjObstacleLoop #si ObstaclePosY!=SnakePosY, branchement vers cfjObstacleLoop
+bne $s0 $s2 cfjObstacleLoop #if ObstaclePosX!=SnakePosX, connection to cfjObstacleLoop
+bne $s1 $s3 cfjObstacleLoop #if ObstaclePosY!=SnakePosY, connection to cfjObstacleLoop
 j GameOverCFJ
 
 snake:
-lw $s4 tailleSnake
+lw $s4 snakeSize
 sll $s4 $s4 2
 li $s5 4
 
-#v�rifie si le snake se mange pas la queue
+# verify if the snake doesn't eat his tail
 cfjTailLoop:
 lw $s2 snakePosX($s5) 
 lw $s3 snakePosY($s5)
 beq $s5 $s4 endCFJ
 addu $s5 $s5 4
-bne $s0 $s2 cfjTailLoop #si SnakePosX[0]!=SnakePosX[s5], branchmenet vers cfjTailLoop
-bne $s1 $s3 cfjTailLoop #si SnakePosX[0]!=SnakePosX[s5], branchement vers cfjTailLoop
+bne $s0 $s2 cfjTailLoop # if SnakePosX[0]!=SnakePosX[s5], connection to cfjTailLoop
+bne $s1 $s3 cfjTailLoop # if SnakePosX[0]!=SnakePosX[s5], connection to cfjTailLoop
 j GameOverCFJ
 
 endCFJ:
@@ -767,25 +769,25 @@ addi $sp $sp 28
 jr $ra
 
 GameOverCFJ:
-li $v0 1 #1 dans $v0 am�ne vers affichageFinJeu
+li $v0 1 #1 in $v0 connects to displayEndGame
 j endCFJ
 
-############################### affichageFinJeu ################################
-# Paramètres: Aucun
-# Retour: Aucun
-# Effet de bord: Affiche le score du joueur dans le terminal suivi d'un petit
-#                mot gentil (Exemple : «Quelle pitoyable prestation !»).
-# Bonus: Afficher le score en surimpression du jeu.
+############################### displayEndGame #################################
+# Parameters: None
+# Return: None
+# Side Effect: Displays the player's score in the terminal followed by a
+#              nice message (Example: "What a pitiful performance!").
+# Bonus: Display the score in overprint of the game.
 ################################################################################
 
-affichageFinJeu:
+displayEndGame:
 
-# Fin.
-la $a0 messageLoser #affiche massage de fin
+# End
+la $a0 messageLoser # displays message at the end
 li $v0 4
 syscall
 
-lw $a0 scoreJeu #affiche le score
+lw $a0 gameScore # prints the score
 li $v0 1
 syscall
 jr $ra
